@@ -1,0 +1,80 @@
+---
+title: "Example R Markdown Document"
+author: "Alice Sweeting"
+date: "01/04/2021"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, R.options=knitr::opts_chunk$set(warnings=FALSE, message=FALSE, fig.width=12, fig.height=8)}
+```
+
+```{r PackagesData}
+# Load required packages
+library(tidyverse)
+library(kableExtra)
+library(viridis)
+library(plotly)
+
+# Load in our data
+RawData <- read.csv("Data/ExampleData.csv")
+```
+
+## Distribution of our dataset
+
+```{r PlotDistributions}
+# Density plot
+ggplot(RawData, aes(x = SkilledInvolvements, fill = Limb)) +
+  geom_density(alpha = 0.7) +
+  scale_fill_viridis_d()
+```
+
+Some text below, describing our density *plot*.
+
+## Add an interactive plot
+
+```{r InteractiveFigure}
+# Use of ggplotly (plotly)
+AthleteSkilledPlot <- ggplot(RawData, aes(x = Limb, y = SkilledInvolvements)) +
+  geom_jitter(aes(colour = Name)) +
+  scale_colour_viridis_d() +
+  geom_boxplot(alpha = 0.3) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 200)) +
+  theme_classic()
+# Make an interactive plot
+ggplotly(AthleteSkilledPlot)
+```
+
+You can write some text here to talk about the plot.
+
+
+### Now we produce a table 
+
+```{r CreateTable}
+# Create a table using the kableExtra package
+RawData %>% 
+  group_by(Name, Limb) %>% 
+  summarise(Median = median(SkilledInvolvements), 
+            Mean = mean(SkilledInvolvements), 
+            SD = sd(SkilledInvolvements)) %>% 
+  mutate(across(where(is.numeric), round, 1)) %>% 
+  kbl() %>% 
+  kable_minimal()
+```
+
+### Produce a neater looking table
+```{r NeaterTable}
+# Create a neater looking table
+RawData %>% 
+  group_by(Name, Limb) %>% 
+  summarise(Mean = mean(SkilledInvolvements), 
+            SD = sd(SkilledInvolvements)) %>% 
+  pivot_wider(names_from = "Limb", 
+              values_from = c("Mean", "SD"), 
+              names_sep = " on ") %>% 
+  mutate(across(where(is.numeric), round, 1)) %>% 
+  kbl() %>% 
+  kable_minimal()
+```
+
